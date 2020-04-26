@@ -88,6 +88,7 @@ def check_viableY(point):
         print()
         return False
 
+
 def check_distance(current_point,new_point):
     x1 = current_point[0]
     y1 = current_point[1]

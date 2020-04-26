@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-'''
-
-'''
 import math
 import cv2
 import time as t
