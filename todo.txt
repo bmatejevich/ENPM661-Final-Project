@@ -1,5 +1,3 @@
 TODO
 
-cost map for predator 200x200 0-10
-make tilmestep function
-add heuristic for testing step by step movement
+add planner for prey based on cost for prey
