@@ -6,6 +6,7 @@ Created on Sun Apr 26 18:17:19 2020
 @author: brianmatejevich
 """
 import numpy as np
+import math
 
 def get_min_node(queue):
     min_node = 0
@@ -96,24 +97,40 @@ def check_distance(current_point,new_point):
     y2 = new_point[1]
     d = np.sqrt((x1-x2)**2+(y1-y2)**2)
     if d <= 1* np.sqrt(2):
-        print("in range")
+        #print("in range")
         return True
     else:
-        print("too far")
+        #print("too far")
         return False
-    
+
+def get_cost_to_go(start,goal):
+    x1 = start[0]
+    x2 = goal[0]
+    y1 = start[1]
+    y2 = goal[1]
+    dist = math.sqrt(((x1-x2)**2)+((y1-y2)**2))
+    return dist
+
+def increment(cost_map,agent_type):
+    if agent_type == "pred":
+        cost_map +=1
+        cost_map = np.clip(cost_map, 0, 255)
+    if agent_type == "prey":
+        cost_map -=1
+        cost_map = np.clip(cost_map, 0, 255)
+    return cost_map
 
 def plot_workspace(x_start,y_start,x_goal,y_goal):
     img = 255 * np.ones((200, 200, 3), np.uint8)
     img[y_start,x_start] = [0,255,0]
-    img[y_goal,x_goal] = [0,0,255]
+    img[y_goal,x_goal] = [0,0,0]
     return img
 
 def move_up(point):
     x = point[0]
     y = point[1]
     cost = 1
-    if check_viableX(x) and check_viableY(y):
+    if check_viableX(x) and check_viableY(y-1):
         new_point = [x, y - 1]
         return new_point, cost
     else:
@@ -124,7 +141,7 @@ def move_down(point):
     x = point[0]
     y = point[1]
     cost = 1
-    if check_viableX(x) and check_viableY(y):
+    if check_viableX(x) and check_viableY(y+1):
         new_point = [x, y + 1]
         return new_point, cost
     else:
@@ -135,7 +152,7 @@ def move_left(point):
     x = point[0]
     y = point[1]
     cost = 1
-    if check_viableX(x) and check_viableY(y):
+    if check_viableX(x-1) and check_viableY(y):
         new_point = [x - 1, y]
         return new_point, cost
     else:
@@ -146,7 +163,7 @@ def move_right(point):
     x = point[0]
     y = point[1]
     cost = 1
-    if check_viableX(x) and check_viableY(y):
+    if check_viableX(x+1) and check_viableY(y):
         new_point = [x + 1, y]
         return new_point, cost
     else:
@@ -157,7 +174,7 @@ def move_up_right(point):
     x = point[0]
     y = point[1]
     cost = np.sqrt(2)
-    if check_viableX(x) and check_viableY(y):
+    if check_viableX(x+1) and check_viableY(y-1):
         new_point = [x + 1, y - 1]
         return new_point, cost
     else:
@@ -168,7 +185,7 @@ def move_up_left(point):
     x = point[0]
     y = point[1]
     cost = np.sqrt(2)
-    if check_viableX(x) and check_viableY(y):
+    if check_viableX(x-1) and check_viableY(y-1):
         new_point = [x - 1, y - 1]
         return new_point, cost
     else:
@@ -179,7 +196,7 @@ def move_down_right(point):
     x = point[0]
     y = point[1]
     cost = np.sqrt(2)
-    if check_viableX(x) and check_viableY(y):
+    if check_viableX(x+1) and check_viableY(y+1):
         new_point = [x + 1, y + 1]
         return new_point, cost
     else:
@@ -190,7 +207,7 @@ def move_down_left(point):
     x = point[0]
     y = point[1]
     cost = np.sqrt(2)
-    if check_viableX(x) and check_viableY(y):
+    if check_viableX(x-1) and check_viableY(y+1):
         new_point = [x - 1, y + 1]
         return new_point, cost
     else:

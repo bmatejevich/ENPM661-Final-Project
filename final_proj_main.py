@@ -3,7 +3,7 @@
 import math
 import cv2
 import time as t
-
+import numpy as np
 
 class Node:
     def __init__(self, x, y):
@@ -20,20 +20,18 @@ class Robot:
 
 
 
-def explore(image, robot):
+def pred_planner(image, robot,cost_for_pred_map):
 
     
-    start_node_pos = robot.start
-    goal_node_pos = robot.goal
+    pred_node_pos = robot.start
+    prey_node_pos = robot.goal
     
-    image[start_node_pos[1], start_node_pos[0]] = [0, 255, 0]
-    image[goal_node_pos[1], goal_node_pos[0]] = [0, 0, 255]
+    image[pred_node_pos[1], pred_node_pos[0]] = [0, 255, 0]
+    image[prey_node_pos[1], prey_node_pos[0]] = [0, 0, 255]
     
-    start_node = Node(start_node_pos[0],start_node_pos[1])
+    start_node = Node(pred_node_pos[0],pred_node_pos[1])
     start_node.cost_for_pred = 0
 
-    waysIn = ways_in(goal_node_pos[0],goal_node_pos[1])
-    print("Ways in", waysIn)
     
     visitedNodes = list()
     queue = [start_node]
@@ -50,21 +48,24 @@ def explore(image, robot):
         visitedNodes.append(str(current_point))
 
         for move in moves:
-            new_point, cost = try_move(move, current_point)
+            new_point, cost_of_action = try_move(move, current_point)
             frame +=1
-            if new_point is not None and check_distance(start_node_pos,new_point):
-                if new_point == goal_node_pos:
+            
+            if new_point is not None and check_distance(pred_node_pos,new_point) and check_distance(pred_node_pos,current_point):
+                
+                cost_for_pred = cost_for_pred_map[new_point[1]][new_point[0]]
+                cost_to_go = get_cost_to_go(new_point,prey_node_pos)
+                cost = cost_of_action + cost_for_pred + 10*cost_to_go
+                #print(new_point,prey_node_pos)
+                if new_point == prey_node_pos:
+                    counter += 1
                     
-                    if counter < waysIn:
-                        counter += 1
-                        print("Goal reached " +str(counter) + " times")
-
                 new_node = Node(new_point[0],new_point[1])
                 new_node.parent = current_node
 
                 image = fill_pixel(image, current_node.x,current_node.y)
-                image[start_node_pos[1], start_node_pos[0]] = [0, 255, 0]
-                image[goal_node_pos[1], goal_node_pos[0]] = [0, 0, 255]
+                image[pred_node_pos[1], pred_node_pos[0]] = [0, 255, 0]
+                image[prey_node_pos[1], prey_node_pos[0]] = [0, 0, 255]
 
                 # update display every 1 nodes explored
                 if frame % 1 == 0:
@@ -92,17 +93,21 @@ def explore(image, robot):
                             temp_node.cost_for_pred = cost + new_node.parent.cost_for_pred
                             temp_node.parent = current_node
                     if step_index is not None:
-                        temp_step_node = step_queue[node_exist_index]
+                        print(node_exist_index)
+                        temp_step_node = step_queue[step_index]
                         if temp_node.cost_for_pred > cost + new_node.parent.cost_for_pred:
                             temp_step_node.cost_for_pred = cost + new_node.parent.cost_for_pred
                             temp_step_node.parent = current_node
             else:
                 continue
-        if counter == waysIn:
-            return new_node.parent, image
+            if counter == 1:
+                min_node = get_min_node(step_queue)
+                print("current location " + str(min_node.x)+","+str(200-(min_node.y+1)))
+                print("Goal reached!")
+                return min_node, True
     min_node = get_min_node(step_queue)
-    print(min_node.x,min_node.y+3)
-    return min_node, None
+    print("current location " + str(min_node.x)+","+str(200-(min_node.y+1)))
+    return min_node, False
 
 #################################################
 start = False
@@ -114,23 +119,23 @@ clearance = 0
 
 
 while start == False:
-    x_start = input("Enter robot x position : ")
-    x_start = int(x_start)
-    y_start = input("Enter robot y position : ") 
-    y_start = 200 - int(y_start)-1
-    start = check_viableY(y_start)
+    x_pred = input("Enter robot x position : ")
+    x_pred = int(x_pred)
+    y_pred = input("Enter robot y position : ") 
+    y_pred = 200 - int(y_pred)-1
+    start = check_viableY(y_pred)
     if start == True:
-        start = check_viableX(x_start)
+        start = check_viableX(x_pred)
        
     
 while goal == False:
-    x_goal = input("Enter goal x position : ") 
-    x_goal = int(x_goal)
-    y_goal = input("Enter goal y position : ") 
-    y_goal = 200 - int(y_goal)-1
-    goal = check_viableY(y_goal)
+    x_prey = input("Enter prey x position : ") 
+    x_prey = int(x_prey)
+    y_prey = input("Enter prey y position : ") 
+    y_prey = 200 - int(y_prey)-1
+    goal = check_viableY(y_prey)
     if goal == True:
-        goal = check_viableX(x_goal)
+        goal = check_viableX(x_prey)
         
 
 
@@ -138,20 +143,29 @@ while goal == False:
 
 start = t.time()
 
+cost_for_pred_map =  20 * np.ones((200, 200))
+cost_for_prey_map = 1 *np.ones((200,200))
+#cost_for_pred_map[98][100] = 1
 
-start_node = [x_start,y_start]
-goal_node = [x_goal,y_goal]
-
-
-
-robot1 = Robot(start_node, goal_node)
-
-workspace = plot_workspace(x_start,y_start,x_goal,y_goal)
+start_node = [x_pred,y_pred]
+prey_node = [x_prey,y_prey]
 
 
-solution, image = explore(workspace, robot1)
 
-view_step = plot_workspace(x_start,y_start,solution.x,solution.y)
+robot1 = Robot(start_node, prey_node)
+
+
+
+
+workspace = plot_workspace(x_pred,y_pred,x_prey,y_prey)
+cv2.imshow("Map", workspace)
+cv2.waitKey(100)
+print("1 move later")
+min_node, goal_reached = pred_planner(workspace, robot1,cost_for_pred_map)
+
+
+view_step = plot_workspace(x_pred,y_pred,min_node.x,min_node.y)
+view_step[y_prey][x_prey]=[0,0,255]
 img = view_step
 scale_percent = 200 # percent of original size
 width = int(img.shape[1] * scale_percent / 100)
@@ -160,23 +174,44 @@ dim = (width, height)
 # resize image
 img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
 cv2.imshow("Map", img)
-cv2.waitKey(0)
-
-print("Time to solve: " + str(t.time()-start) + " seconds")
-if solution is not None:
-    parent_list = backtrack(solution)
-    for parent in parent_list:
-        x = parent.x
-        y = parent.y
-        image[y, x] = [0, 255, 0]
-        
-        cv2.imshow("Map", image)
-        cv2.waitKey(25)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-else:
-    print("No path to goal point")
-
+cv2.waitKey(100)
+cost_for_pred_map = increment(cost_for_pred_map,"pred")
+cost_for_prey_map = increment(cost_for_prey_map, "prey")
+#################################################################
+x = 0
+while goal_reached == False:
+    current_node = [min_node.x,min_node.y]
+    workspace = plot_workspace(current_node[0],current_node[1],x_prey,y_prey)
+    robot1 = Robot(current_node, prey_node)
+    print(str(x+2)+" moves later")
+    min_node, goal_reached = pred_planner(workspace, robot1,cost_for_pred_map)
+    
+    view_step = plot_workspace(x_pred,y_pred,min_node.x,min_node.y)
+    view_step[y_prey][x_prey]=[0,0,255]
+    img = view_step
+    scale_percent = 200 # percent of original size
+    width = int(img.shape[1] * scale_percent / 100)
+    height = int(img.shape[0] * scale_percent / 100)
+    dim = (width, height)
+    # resize image
+    img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+    cv2.imshow("Map", img)
+    cv2.waitKey(100)
+    
+    cost_for_prey_map[min_node.y][min_node.x]=255
+    cost_for_pred_map[y_prey][x_prey]=0
+    
+    cost_for_pred_map = increment(cost_for_pred_map,"pred")
+    cost_for_prey_map = increment(cost_for_prey_map, "prey")
+    
+    #simulated prey movement
+    if x%2 ==0:
+        x_prey +=1
+        y_prey -=0
+        prey_node = [x_prey,y_prey]
+    x+=1
+#print(cost_for_pred_map)
+#print(cost_for_prey_map)
 
 
 
