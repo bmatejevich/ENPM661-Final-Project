@@ -15,6 +15,13 @@ def get_min_node(queue):
             min_node = node
     return queue.pop(min_node)
 
+def get_max_node(queue):
+    max_node = 0
+    for node in range(len(queue)):
+        if queue[node].cost_for_prey > queue[max_node].cost_for_prey:
+            max_node = node
+    return queue.pop(max_node)
+
 def node_exists(x,y, queue):
     for node in queue:
         if node.x == x and node.y == y:
