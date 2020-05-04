@@ -8,19 +8,19 @@ Created on Sun Apr 26 18:17:19 2020
 import numpy as np
 import math
 
-def get_min_node(queue):
+def get_min_node_pred(queue):
     min_node = 0
     for node in range(len(queue)):
         if queue[node].cost_for_pred < queue[min_node].cost_for_pred:
             min_node = node
     return queue.pop(min_node)
 
-def get_max_node(queue):
-    max_node = 0
+def get_min_node_prey(queue):
+    min_node = 0
     for node in range(len(queue)):
-        if queue[node].cost_for_prey > queue[max_node].cost_for_prey:
-            max_node = node
-    return queue.pop(max_node)
+        if queue[node].cost_for_prey < queue[min_node].cost_for_prey:
+            min_node = node
+    return queue.pop(min_node)
 
 def node_exists(x,y, queue):
     for node in queue:
