@@ -56,7 +56,7 @@ def pred_planner(image, robot, cost_for_pred_map):
 
                 cost_for_pred = cost_for_pred_map[new_point[1]][new_point[0]]
                 cost_to_go = get_cost_to_go(new_point, prey_node_pos)
-                cost = cost_of_action + cost_for_pred + 2 * cost_to_go
+                cost = cost_of_action + cost_for_pred + 1 * cost_to_go
                 # print(new_point,prey_node_pos)
                 if new_point == prey_node_pos:
                     counter += 1
@@ -142,17 +142,15 @@ def prey_planner(image, robot, cost_for_prey_map):
                                                                                                      current_point):
 
                 cost_for_prey = cost_for_prey_map[new_point[1]][new_point[0]]
-                cost_to_pred = -2 * get_cost_to_go(new_point, (pred_node_pos.x, pred_node_pos.y))
-                
                 #give some random motion
                 cost_r = random.randint(0,2)
                 
-                #only take predator location into account if nearby
-                if cost_to_pred <= -100:
-                    cost_to_pred = 0
-                    cost_r = 0
+                Wc = .5
+                Wp = .5
                 
-                cost_to_center = math.sqrt(get_cost_to_go(new_point, (100, 100)))
+                
+                cost_to_pred = -Wp * get_cost_to_go(new_point, (pred_node_pos.x, pred_node_pos.y))
+                cost_to_center = Wc * get_cost_to_go(new_point, (100, 100))
             
                 cost_p = cost_of_action + cost_for_prey + cost_to_pred + cost_r + cost_to_center
                 
@@ -187,40 +185,15 @@ def prey_planner(image, robot, cost_for_prey_map):
     #print("current location " + str(min_node.x) + "," + str(200 - (min_node.y + 1)))
     return min_node
 #################################################
-start = False
-goal = False
-
-# change these values for point/rigid robot
-radius = 0
-clearance = 0
-
-# while start == False:
-#     x_pred = input("Enter robot x position : ")
-#     x_pred = int(x_pred)
-#     y_pred = input("Enter robot y position : ")
-#     y_pred = 200 - int(y_pred) - 1
-#     start = check_viableY(y_pred)
-#     if start == True:
-#         start = check_viableX(x_pred)
-#
-# while goal == False:
-#     x_prey = input("Enter prey x position : ")
-#     x_prey = int(x_prey)
-#     y_prey = input("Enter prey y position : ")
-#     y_prey = 200 - int(y_prey) - 1
-#     goal = check_viableY(y_prey)
-#     if goal == True:
-#         goal = check_viableX(x_prey)
-# Window name in which image is displayed 
   
 font = cv2.FONT_HERSHEY_SIMPLEX 
-org = (5, 100) 
+org = (5, 40) 
 fontScale = 1
 color = (255, 0, 0) 
 thickness = 2
    
 
-x_pred = random.randint(0, 200) 
+x_pred = random.randint(0, 199) 
 y_pred = 200 - random.randint(0, 200) - 1
 x_prey = random.randint(50, 150)
 y_prey = 200 - random.randint(50, 150) - 1
@@ -229,7 +202,7 @@ start = t.time()
 
 cost_for_pred_map = 255 * np.ones((200, 200))
 cost_for_prey_map = 5 * np.ones((200, 200))
-blank_screen = 255 * np.ones((200,200,3))
+blank_screen = 255 * np.ones((50,250,3))
 # cost_for_pred_map[98][100] = 1
 
 start_node = [x_pred, y_pred]
@@ -287,8 +260,8 @@ while goal_reached == False:
     cv2.imshow("Moves",moves_screen)
     cv2.waitKey(10)
 
-    cost_for_prey_map[min_node.y][min_node.x] = 120
-    cost_for_pred_map[y_prey][x_prey] = 0
+    cost_for_prey_map[min_node.y][min_node.x] = 100
+    cost_for_pred_map[y_prey][x_prey] = 155
 
     cost_for_pred_map = increment(cost_for_pred_map, "pred")
     cost_for_prey_map = increment(cost_for_prey_map, "prey")
@@ -299,7 +272,8 @@ while goal_reached == False:
     cv2.imshow("Cost for pred",pred_img)
     cv2.waitKey(10)
     # simulated prey movement
-    if x % 1 == 0:
+    speed_of_pred = 3
+    if x % speed_of_pred == 0:
         prey = Robot(prey_node, min_node)
         mix_node_prey = prey_planner(workspace, prey, cost_for_prey_map)
         x_prey = mix_node_prey.x
