@@ -68,19 +68,6 @@ def pred_planner(image, robot, cost_for_pred_map):
                 image[pred_node_pos[1], pred_node_pos[0]] = [0, 255, 0]
                 image[prey_node_pos[1], prey_node_pos[0]] = [0, 0, 255]
 
-                # update display every 1 nodes explored
-                '''
-                if frame % 1 == 0:
-                    img = image
-                    scale_percent = 200  # percent of original size
-                    width = int(img.shape[1] * scale_percent / 100)
-                    height = int(img.shape[0] * scale_percent / 100)
-                    dim = (width, height)
-                    # resize image
-                    img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
-                    cv2.imshow("Map", img)
-                    cv2.waitKey(1)
-                '''
                 if str(new_point) not in visitedNodes:
                     new_node.cost_for_pred = cost + new_node.parent.cost_for_pred
                     visitedNodes.append(str(new_point))
@@ -146,7 +133,7 @@ def prey_planner(image, robot, cost_for_prey_map):
                 cost_r = random.randint(0,2)
                 
                 Wc = .5
-                Wp = .5
+                Wp = 1
                 
                 
                 cost_to_pred = -Wp * get_cost_to_go(new_point, (pred_node_pos.x, pred_node_pos.y))
@@ -201,7 +188,7 @@ y_prey = 200 - random.randint(50, 150) - 1
 start = t.time()
 
 cost_for_pred_map = 255 * np.ones((200, 200))
-cost_for_prey_map = 5 * np.ones((200, 200))
+cost_for_prey_map = 1 * np.ones((200, 200))
 blank_screen = 255 * np.ones((50,250,3))
 # cost_for_pred_map[98][100] = 1
 
@@ -272,7 +259,7 @@ while goal_reached == False:
     cv2.imshow("Cost for pred",pred_img)
     cv2.waitKey(10)
     # simulated prey movement
-    speed_of_pred = 3
+    speed_of_pred = 1
     if x % speed_of_pred == 0:
         prey = Robot(prey_node, min_node)
         mix_node_prey = prey_planner(workspace, prey, cost_for_prey_map)
@@ -280,5 +267,3 @@ while goal_reached == False:
         y_prey = mix_node_prey.y
         prey_node = [x_prey, y_prey]
     x += 1
-# print(cost_for_pred_map)
-# print(cost_for_prey_map)
