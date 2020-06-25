@@ -1,3 +1,4 @@
 README
 
-running python3 final_proj_main.py will run the simulation.
+Running $ python3 main.py will run the simulation.
+You can edit the predator's relative speed on line 248 of main.py
