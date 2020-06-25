@@ -9,6 +9,7 @@ import numpy as np
 import math
 
 def get_min_node_pred(queue):
+    """return lowest cost node in the predator's nodelist"""
     min_node = 0
     for node in range(len(queue)):
         if queue[node].cost_for_pred < queue[min_node].cost_for_pred:
@@ -16,6 +17,7 @@ def get_min_node_pred(queue):
     return queue.pop(min_node)
 
 def get_min_node_prey(queue):
+    """return lowest cost node in the prey's nodelist"""
     min_node = 0
     for node in range(len(queue)):
         if queue[node].cost_for_prey < queue[min_node].cost_for_prey:
@@ -23,13 +25,15 @@ def get_min_node_prey(queue):
     return queue.pop(min_node)
 
 def node_exists(x,y, queue):
+    """ return index if a node exists in nodelist, else None"""
     for node in queue:
         if node.x == x and node.y == y:
             return queue.index(node)
         else:
             return None
-        
+
 def try_move(move, current_point):
+    """try appropriate move"""
     if move == 'move_up':
         return move_up(current_point)
     if move == 'move_down':
@@ -47,7 +51,8 @@ def try_move(move, current_point):
     if move == 'move_down_left':
         return move_down_left(current_point)
 
-def ways_in(x,y): # a pixel with no obstacles or edges nearby can be achieved from 8 moves
+def ways_in(x,y):
+    """count the number of ways into the goal node"""
     count = 0
     if y > 0: #from top
         count+=1
@@ -67,11 +72,13 @@ def ways_in(x,y): # a pixel with no obstacles or edges nearby can be achieved fr
         count+=1
     return count
 
-def fill_pixel(img,x,y): #fill visited pixes
+def fill_pixel(img,x,y):
+    """update the image by coloring in the pixel"""
     img[y,x] = [255,0,0]
     return img
 
-def backtrack(node): #create list of parent node locations
+def backtrack(node):
+    """create list of parent node locations"""
     parentList = list()
     parent = node.parent
     while parent is not None:
@@ -79,16 +86,8 @@ def backtrack(node): #create list of parent node locations
         parent = parent.parent
     return parentList
 
-
 def check_viableX(point):
-    if point >= 0 and point < 200:
-        return True
-    else:
-        print("Invalid")
-        print()
-        return False
-    
-def check_viableY(point):
+    """make sure x is within the map"""
     if point >= 0 and point < 200:
         return True
     else:
@@ -96,8 +95,17 @@ def check_viableY(point):
         print()
         return False
 
+def check_viableY(point):
+    """make sure y is within the map"""
+    if point >= 0 and point < 200:
+        return True
+    else:
+        print("Invalid")
+        print()
+        return False
 
 def check_distance(current_point,new_point):
+    """return the distance between the current point and the new point"""
     x1 = current_point[0]
     y1 = current_point[1]
     x2 = new_point[0]
@@ -111,6 +119,7 @@ def check_distance(current_point,new_point):
         return False
 
 def get_cost_to_go(start,goal):
+    """return cost to go from current point to the goal point"""
     x1 = start[0]
     x2 = goal[0]
     y1 = start[1]
@@ -119,6 +128,8 @@ def get_cost_to_go(start,goal):
     return dist
 
 def increment(cost_map,agent_type):
+    """update the map by increasing the predators cost map and
+     decreasing the prey's cost map"""
     if agent_type == "pred":
         cost_map +=1
         cost_map = np.clip(cost_map, 0, 255)
@@ -128,6 +139,7 @@ def increment(cost_map,agent_type):
     return cost_map
 
 def plot_workspace(x_start,y_start,x_goal,y_goal):
+    """plot the start and goal locations on the map"""
     img = 255 * np.ones((200, 200, 3), np.uint8)
     img[y_start,x_start] = [0,255,0]
     img[y_goal,x_goal] = [0,0,0]
@@ -143,7 +155,6 @@ def move_up(point):
     else:
         return None, None
 
-
 def move_down(point):
     x = point[0]
     y = point[1]
@@ -153,7 +164,6 @@ def move_down(point):
         return new_point, cost
     else:
         return None, None
-
 
 def move_left(point):
     x = point[0]
@@ -165,7 +175,6 @@ def move_left(point):
     else:
         return None, None
 
-
 def move_right(point):
     x = point[0]
     y = point[1]
@@ -175,7 +184,6 @@ def move_right(point):
         return new_point, cost
     else:
         return None, None
-
 
 def move_up_right(point):
     x = point[0]
@@ -187,7 +195,6 @@ def move_up_right(point):
     else:
         return None, None
 
-
 def move_up_left(point):
     x = point[0]
     y = point[1]
@@ -198,7 +205,6 @@ def move_up_left(point):
     else:
         return None, None
 
-
 def move_down_right(point):
     x = point[0]
     y = point[1]
@@ -208,7 +214,6 @@ def move_down_right(point):
         return new_point, cost
     else:
         return None, None
-
 
 def move_down_left(point):
     x = point[0]
